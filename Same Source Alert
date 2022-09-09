@@ -1,0 +1,8 @@
+index="policyguru_data" resourceId="enum*" NOT disposition.disposition="ALLOWED"
+| rex field=meta "direction:(?<direction>.*)"
+| search direction="INBOUND"
+| rename connections{}.left.facets{}.number as sourcenumber
+| stats count by sourcenumber
+| eval calls = count/2
+| table sourcenumber calls
+| search calls > 10
