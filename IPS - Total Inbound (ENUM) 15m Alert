@@ -1,0 +1,5 @@
+index="policyguru_data" resourceId="enum*" NOT disposition.disposition="ALLOWED"
+| rex field=meta "direction:(?<direction>.*)"
+| search direction="INBOUND"
+| stats count as calls
+| search calls > 10
