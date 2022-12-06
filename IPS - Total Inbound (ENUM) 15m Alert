@@ -8,3 +8,5 @@ index="policyguru_data" resourceId="enum*"
 | search lists != "White*" OR lists != "Grey*"
 | stats count
 | search count > 7000
+| eval message="Metlife Total Inbound Breach:"
+| table message count
