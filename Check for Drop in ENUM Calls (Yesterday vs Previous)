@@ -13,4 +13,4 @@ search index="policyguru_data" resourceId="enum*" NOT disposition.disposition="A
 | eval diff = yesterday_calls - last_week_calls
 | eval perc_diff = ROUND((diff / last_week_calls)*100,2)
 | table yesterday_calls last_week_calls diff perc_diff
-| search yesterday_calls > 100 AND perc_diff > 50
+| search yesterday_calls > 100 AND perc_diff < -50
