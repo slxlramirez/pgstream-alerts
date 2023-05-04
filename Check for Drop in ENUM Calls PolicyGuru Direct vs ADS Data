@@ -1,0 +1,23 @@
+index="policyguru_data" resourceId="enum*" NOT disposition.disposition="*"
+| stats count as ads_calls
+| eval myjoin="myjoin"
+| join myjoin
+[
+| dbxquery
+timeout=1800
+connection=ngp_connection
+query="
+SELECT  'myjoin'  as myjoin,
+        count(guid) as pg_calls
+FROM    master.flowstart a
+WHERE   a.analyticstime >= (extract ('epoch' from date_trunc('day', current_date)::timestamp AT TIME ZONE 'CST6CDT' AT TIME ZONE 'GMT'  - interval '1 day')*1000)::bigint AND
+        a.analyticstime  < (extract ('epoch' from date_trunc('day', current_date)::timestamp AT TIME ZONE 'CST6CDT' AT TIME ZONE 'GMT'  + interval '0 day')*1000)::bigint AND
+        a.routername LIKE 'enum%'
+"
+shortnames=t
+]
+| eval diff=ads_calls - pg_calls
+| eval perc_diff=ROUND(diff/pg_calls,3)*100
+| eval customer="Prudential"
+| table customer ads_calls pg_calls diff perc_diff
+| search perc_diff < -50
