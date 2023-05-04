@@ -1,9 +1,13 @@
-index="policyguru_data" resourceId="enum*" 
+index="policyguru_data" resourceId="enum*"
 | stats values(*) as * by guid
 | rex field=meta "direction:(?<direction>.*)"
-| search direction="OUTBOUND"
-| search NOT connections{}.right.facets{}.country="United States" AND NOT connections{}.right.facets{}.country="Unknown"
-| rename connections{}.right.facets{}.country as destinationcountry
+| search direction="INBOUND"
 | search disposition.disposition="ALLOWED"
-| stats count by destinationcountry
-| search count > 100
+| lookup pg_directory_listings.csv number AS "connections{}.left.facets{}.number" OUTPUT lists
+| fillnull value="No List Match" lists
+| search lists != "*Whitelist*" AND lists != "*Graylist*"
+| rename connections{}.left.facets{}.number as sourcenumber
+| stats count as calls by sourcenumber
+| table sourcenumber calls
+| search calls > 150
+| head 10
