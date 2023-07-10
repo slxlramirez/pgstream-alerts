@@ -30,3 +30,5 @@ connections{}.control.l7{}.meta as calldisposition
 | mvcombine delim="," calldispositions
 | nomv calldispositions
 ]
+| eval ltime = now()
+| eval etime = relative_time(ltime,"-15m")
