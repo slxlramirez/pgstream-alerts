@@ -1,10 +1,8 @@
 index="policyguru_data" resourceId="enum*" disposition.disposition="*"
-| table _time source sourcetype guid timestamp timestampStr 
-resourceId 
-disposition.disposition
-disposition.dispositionEnum	
 | rename
 disposition.disposition as disposition
 disposition.dispositionEnum as disposition_enum
 | top disposition
-| search disposition="TERMINATED" AND percent > 50
+| search disposition="TERMINATED" AND percent > 90 AND count > 250
+| eval ltime = relative_time(now(),"+1h")
+| eval etime = relative_time(now(),"-1d")
