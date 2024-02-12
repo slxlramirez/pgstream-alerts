@@ -1,23 +1,17 @@
-index="policyguru_data" resourceId="enum*" 
-| stats values(*) as * by guid
-| rex field=meta "direction:(?<direction>.*)"
-| search direction="INBOUND"
-| search disposition.disposition="ALLOWED"
-| lookup pg_directory_listings.csv number AS "connections{}.left.facets{}.number" OUTPUT lists
+index="policyguru_data" resourceId="enum*" ("INBOUND" OR "disposition.disposition"="ALLOWED")
+| stats values("connections{}.left.facets{}.number") as sourcenumber values("disposition.disposition") as disposition by guid
+| search disposition="ALLOWED"
+| lookup pg_directory_listings.csv number AS sourcenumber OUTPUT lists
 | fillnull value="No List Match" lists
 | search lists != "*Whitelist*" AND lists != "*Graylist*"
-| rename connections{}.left.facets{}.number as sourcenumber
 | stats count as calls by sourcenumber
 | table sourcenumber calls
-| search calls > 150
 | sort -calls
+| search calls > 250
 | head 10
 | join type=left sourcenumber
 [
 search index="policyguru_data" resourceId="sip*" "ENDED" "INBOUND"
-| table 
-connections{}.left.facets{}.number 
-connections{}.control.l7{}.meta
 | rename
 connections{}.left.facets{}.number as sourcenumber
 connections{}.control.l7{}.meta as calldisposition
