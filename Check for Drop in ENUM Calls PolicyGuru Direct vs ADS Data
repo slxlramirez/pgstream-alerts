@@ -18,6 +18,6 @@ shortnames=t
 ]
 | eval diff=ads_calls - pg_calls
 | eval perc_diff=ROUND(diff/pg_calls,3)*100
-| eval customer="Prudential"
+| eval customer="AIG"
 | table customer ads_calls pg_calls diff perc_diff
 | search perc_diff < -50
