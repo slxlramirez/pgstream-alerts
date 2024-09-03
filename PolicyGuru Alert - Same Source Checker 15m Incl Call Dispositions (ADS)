@@ -8,6 +8,7 @@ index="policyguru_data" resourceId="enum*" ("INBOUND" OR "disposition.dispositio
 | table sourcenumber calls
 | sort -calls
 | search calls > 250
+| search NOT sourcenumber=""
 | head 10
 | join type=left sourcenumber
 [
