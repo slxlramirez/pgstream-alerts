@@ -10,4 +10,5 @@ index="policyguru_data" resourceId="enum*"
 | stats count as calls by sourcenumber
 | table sourcenumber calls
 | search calls > 150
+| search NOT sourcenumber=""
 | head 10
