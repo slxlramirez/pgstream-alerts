@@ -1,0 +1,48 @@
+
+| dbxquery
+maxrows=250000
+connection=ngp_x
+timeout=1800 query="
+SELECT   'ngp-x as app, COUNT(a.guid) as calls
+FROM     master.flowstart a
+WHERE    a.routername LIKE 'enum%' AND
+         a.analyticstime >= (extract ('epoch' from date_trunc('day', current_date)::timestamp AT TIME ZONE 'CST6CDT' AT TIME ZONE 'GMT'  - interval '1 day')*1000)::bigint AND
+         a.analyticstime  < (extract ('epoch' from date_trunc('day', current_date)::timestamp AT TIME ZONE 'CST6CDT' AT TIME ZONE 'GMT'  + interval '0 day')*1000)::bigint
+" shortnames=t
+| append [
+| dbxquery
+maxrows=250000
+connection=ngp_x
+timeout=1800 query="
+SELECT   'ngp-x' as app, COUNT(a.guid) as calls
+FROM     master.flowstart a
+WHERE    a.routername LIKE 'enum%' AND
+         a.analyticstime >= (extract ('epoch' from date_trunc('day', current_date)::timestamp AT TIME ZONE 'CST6CDT' AT TIME ZONE 'GMT'  - interval '1 day')*1000)::bigint AND
+         a.analyticstime  < (extract ('epoch' from date_trunc('day', current_date)::timestamp AT TIME ZONE 'CST6CDT' AT TIME ZONE 'GMT'  + interval '0 day')*1000)::bigint
+" shortnames=t
+]
+| append [
+| dbxquery
+maxrows=250000
+connection=ngp-x
+timeout=1800 query="
+SELECT   'ngp-x as app, COUNT(a.guid) as calls
+FROM     master.flowstart a
+WHERE    a.routername LIKE 'enum%' AND
+         a.analyticstime >= (extract ('epoch' from date_trunc('day', current_date)::timestamp AT TIME ZONE 'CST6CDT' AT TIME ZONE 'GMT'  - interval '1 day')*1000)::bigint AND
+         a.analyticstime  < (extract ('epoch' from date_trunc('day', current_date)::timestamp AT TIME ZONE 'CST6CDT' AT TIME ZONE 'GMT'  + interval '0 day')*1000)::bigint
+" shortnames=t
+]
+| addcoltotals
+| fillnull value="call_count" app
+| search app="call_count"
+| rename calls as pg_direct_calls
+| append [
+search index="policyguru_data" resourceId="enum*" NOT disposition.disposition=*
+| stats count
+| rename count as ads_calls
+| eval app="call_count"
+]
+| stats values(ads_calls) as ads_calls values(pg_direct_calls) as pg_direct_calls by app
+| eval diff = pg_direct_calls - ads_calls
+| search diff > 0
