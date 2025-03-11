@@ -1,0 +1,12 @@
+index="policyguru_data" resourceId="sip*" "STARTED" earliest=-1d@d latest=-0d@d
+| stats count as yesterday_calls
+| append
+[
+search index="policyguru_data" resourceId="sip*" "STARTED" earliest=-8d@d latest=-7d@d
+| stats count as last_week_calls
+]
+| stats values(*) as *
+| eval diff = yesterday_calls - last_week_calls
+| eval perc_diff = ROUND((diff / last_week_calls)*100,2)
+| table yesterday_calls last_week_calls diff perc_diff
+| search yesterday_calls > 100 AND perc_diff < -50
